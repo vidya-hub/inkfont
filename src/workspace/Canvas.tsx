@@ -44,54 +44,57 @@ function fillFallback(
   cap: number,
   xh: number,
 ) {
-  const stem = Math.max(36, advance * 0.13),
-    inset = advance * 0.2;
+  const stem = Math.min(72, Math.max(48, advance * 0.1)),
+    pad = Math.max(70, advance * 0.14),
+    bar = stem * 0.72;
   ctx.beginPath();
   if (kind === "n") {
-    ctx.rect(inset, 0, stem, xh);
-    ctx.moveTo(inset + stem, xh);
+    const r = (xh - stem) * 0.55;
+    ctx.roundRect(pad, 0, stem, xh, 8);
+    ctx.moveTo(pad + stem, xh);
     ctx.bezierCurveTo(
-      advance * 0.55,
+      pad + stem + r * 0.15,
       xh,
-      advance - inset,
-      xh * 0.75,
-      advance - inset,
-      0,
+      pad + stem + r,
+      xh,
+      pad + stem + r,
+      xh - r,
     );
-    ctx.lineTo(advance - inset - stem, 0);
-    ctx.lineTo(advance - inset - stem, xh * 0.5);
+    ctx.lineTo(pad + stem + r, 0);
+    ctx.lineTo(pad + stem + r - stem, 0);
+    ctx.lineTo(pad + stem + r - stem, xh - r);
     ctx.bezierCurveTo(
-      advance - inset - stem,
-      xh * 0.82,
-      inset + stem * 1.8,
-      xh * 0.82,
-      inset + stem,
-      xh * 0.5,
+      pad + stem + r - stem,
+      xh - stem,
+      pad + stem * 1.2,
+      xh - stem,
+      pad + stem,
+      xh - stem,
     );
     ctx.closePath();
   } else if (kind === "0") {
     ctx.ellipse(
       advance / 2,
-      cap * 0.45,
-      advance * 0.28,
-      cap * 0.42,
+      cap * 0.48,
+      advance * 0.26,
+      cap * 0.46,
       0,
       0,
       Math.PI * 2,
     );
     ctx.ellipse(
       advance / 2,
-      cap * 0.45,
-      advance * 0.13,
-      cap * 0.2,
+      cap * 0.48,
+      advance * 0.12,
+      cap * 0.22,
       0,
       0,
       Math.PI * 2,
     );
   } else {
-    ctx.rect(inset, 0, stem, cap);
-    ctx.rect(advance - inset - stem, 0, stem, cap);
-    ctx.rect(inset, cap * 0.42, advance - 2 * inset, stem * 0.65);
+    ctx.roundRect(pad, 0, stem, cap, 8);
+    ctx.roundRect(advance - pad - stem, 0, stem, cap, 8);
+    ctx.roundRect(pad, cap * 0.48 - bar / 2, advance - 2 * pad, bar, 6);
   }
   ctx.fill(kind === "0" ? "evenodd" : "nonzero");
 }
@@ -180,10 +183,23 @@ export function EditorCanvas() {
     return () => o.disconnect();
   }, []);
   useEffect(() => {
+    const key = spacingKey(glyph?.name ?? "A"),
+      neighbor = project.glyphs[project.mappings[key]]?.advance ?? 600,
+      minX = editor.ghosts ? -neighbor - 40 : -40,
+      maxX = (glyph?.advance ?? 600) + (editor.ghosts ? neighbor + 40 : 40),
+      minY = project.metrics.descender - 40,
+      maxY = project.metrics.ascender + 40,
+      scale = Math.max(
+        0.08,
+        Math.min(
+          (size.w - 48) / Math.max(200, maxX - minX),
+          (size.h - 72) / Math.max(200, maxY - minY),
+        ),
+      );
     setCamera({
-      x: size.w * 0.16,
-      y: size.h * 0.78,
-      scale: Math.min(size.w / 1200, size.h / 1200),
+      x: 24 - minX * scale,
+      y: size.h / 2 + ((minY + maxY) / 2) * scale,
+      scale,
     });
     gesture.current = null;
     job.current?.abort();
@@ -196,7 +212,17 @@ export function EditorCanvas() {
       busy: false,
     });
     setMarquee(null);
-  }, [id, editor.fit, size.w, size.h]);
+  }, [
+    id,
+    editor.fit,
+    editor.ghosts,
+    size.w,
+    size.h,
+    glyph?.name,
+    glyph?.advance,
+    project.metrics.ascender,
+    project.metrics.descender,
+  ]);
   useEffect(() => () => job.current?.abort(), []);
   const screen = (p: Point) => ({
     x: camera.x + p.x * camera.scale,
@@ -1224,8 +1250,8 @@ export function EditorCanvas() {
           });
         }}
       />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-[#fffdf7ee] px-3 py-1.5 text-[10px] text-[#9a8c77]">
-        <span>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex min-w-0 items-center justify-between gap-3 bg-[#fffdf7ee] px-3 py-1.5 text-[10px] text-[#9a8c77]">
+        <span className="min-w-0 truncate">
           {Math.round(camera.scale * 100)}%
           {(() => {
             const box = bounds(
@@ -1241,7 +1267,7 @@ export function EditorCanvas() {
               ? "Click corners · Drag handles · Click first node to close · Enter to finish"
               : "Scroll to zoom · H to pan · 0 to fit"}
         </span>
-        <div className="pointer-events-auto flex items-center gap-2">
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2">
           <button
             aria-pressed={editor.ghosts}
             className={
