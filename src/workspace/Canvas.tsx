@@ -330,11 +330,11 @@ export function EditorCanvas() {
       gesture.current?.kind === "brush" ||
       gesture.current?.kind === "eraser"
     ) {
-      const ps = gesture.current.points ?? [];
+      const ps = gesture.current.points ?? [],
+        erasing = gesture.current.kind === "eraser";
       ctx.beginPath();
       ps.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
-      ctx.strokeStyle =
-        gesture.current.kind === "eraser" ? "#dd613766" : "#282820";
+      ctx.strokeStyle = erasing ? "#c9563255" : "#282820";
       ctx.lineWidth = editor.size;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -342,7 +342,18 @@ export function EditorCanvas() {
       if (ps.length === 1) {
         ctx.beginPath();
         ctx.arc(ps[0].x, ps[0].y, editor.size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = erasing ? "#c9563255" : "#282820";
         ctx.fill();
+      }
+      if (erasing && ps.length) {
+        const head = ps[ps.length - 1];
+        ctx.beginPath();
+        ctx.arc(head.x, head.y, editor.size / 2, 0, Math.PI * 2);
+        ctx.setLineDash([6 / camera.scale, 5 / camera.scale]);
+        ctx.strokeStyle = "#c95632";
+        ctx.lineWidth = 1.5 / camera.scale;
+        ctx.stroke();
+        ctx.setLineDash([]);
       }
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -418,8 +429,16 @@ export function EditorCanvas() {
       const h = screen(hover);
       ctx.beginPath();
       ctx.arc(h.x, h.y, (editor.size * camera.scale) / 2, 0, Math.PI * 2);
-      ctx.strokeStyle = "#9c7759";
+      if (editor.tool === "eraser") {
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = "#c95632";
+        ctx.lineWidth = 1.8;
+      } else {
+        ctx.strokeStyle = "#9c7759";
+        ctx.lineWidth = 1;
+      }
       ctx.stroke();
+      ctx.setLineDash([]);
     }
   }, [
     project,
@@ -1044,9 +1063,11 @@ export function EditorCanvas() {
           cursor:
             editor.tool === "hand"
               ? "grab"
-              : editor.tool === "brush" || editor.tool === "bezier"
-                ? "crosshair"
-                : "default",
+              : editor.tool === "eraser"
+                ? "none"
+                : editor.tool === "brush" || editor.tool === "bezier"
+                  ? "crosshair"
+                  : "default",
         }}
         onPointerDown={down}
         onPointerMove={move}

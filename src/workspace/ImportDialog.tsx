@@ -206,7 +206,10 @@ export function ImportDialog({ close }: { close: () => void }) {
         with optional local vector tracing.
       </p>
       <label className="drop-zone">
-        Choose a font or image
+        <strong>Choose a font or image</strong>
+        <span className="drop-hint">
+          TTF, OTF, WOFF, PNG, JPEG, or WebP. Everything stays on this device.
+        </span>
         <input
           aria-label="Import file"
           type="file"

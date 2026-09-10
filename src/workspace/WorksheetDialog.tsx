@@ -169,8 +169,9 @@ export function WorksheetDialog({ close }: { close: () => void }) {
       <div className="button-row">
         <button onClick={print}>Download printable worksheet</button>
         <label className="file-button">
-          Load worksheet photo
+          <span aria-hidden>Load worksheet photo</span>
           <input
+            aria-label="Load worksheet photo"
             type="file"
             accept="image/png,image/jpeg,image/webp"
             onChange={(e) => {

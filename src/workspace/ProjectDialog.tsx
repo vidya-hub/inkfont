@@ -74,8 +74,9 @@ export function ProjectDialog({ close }: { close: () => void }) {
           Download editable backup
         </button>
         <label className="file-button">
-          Open backup
+          <span aria-hidden>Open backup</span>
           <input
+            aria-label="Open backup"
             type="file"
             accept=".inkfont"
             onChange={(e) => {

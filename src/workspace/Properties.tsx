@@ -194,32 +194,49 @@ export function Properties() {
         </button>
       </section>
       <section>
-        <h3>Drawing</h3>
-        <label>
-          Brush{" "}
-          <select
-            value={e.brush}
-            onChange={(ev) =>
-              e.set({ brush: ev.target.value as typeof e.brush })
-            }
-          >
-            {["pen", "brush", "nib", "monoline", "chisel"].map((b) => (
-              <option key={b}>{b}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Width{" "}
-          <input
-            aria-label="Brush width"
-            type="range"
-            min="2"
-            max="180"
-            value={e.size}
-            onChange={(ev) => e.set({ size: +ev.target.value })}
-          />
-          <span>{e.size}</span>
-        </label>
+        <h3>{e.tool === "eraser" ? "Eraser" : "Drawing"}</h3>
+        {e.tool === "eraser" ? (
+          <label>
+            Eraser size{" "}
+            <input
+              aria-label="Eraser size"
+              type="range"
+              min="2"
+              max="180"
+              value={e.size}
+              onChange={(ev) => e.set({ size: +ev.target.value })}
+            />
+            <span>{e.size}</span>
+          </label>
+        ) : (
+          <>
+            <label>
+              Brush{" "}
+              <select
+                value={e.brush}
+                onChange={(ev) =>
+                  e.set({ brush: ev.target.value as typeof e.brush })
+                }
+              >
+                {["pen", "brush", "nib", "monoline", "chisel"].map((b) => (
+                  <option key={b}>{b}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Width{" "}
+              <input
+                aria-label="Brush width"
+                type="range"
+                min="2"
+                max="180"
+                value={e.size}
+                onChange={(ev) => e.set({ size: +ev.target.value })}
+              />
+              <span>{e.size}</span>
+            </label>
+          </>
+        )}
         <label>
           Stabilization{" "}
           <input
@@ -231,25 +248,29 @@ export function Properties() {
             onChange={(ev) => e.set({ stabilization: +ev.target.value })}
           />
         </label>
-        <label>
-          Nib angle
-          <input
-            type="number"
-            value={e.nibAngle}
-            onChange={(ev) => e.set({ nibAngle: +ev.target.value })}
-          />
-        </label>
-        <label>
-          Taper
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step=".05"
-            value={e.taper}
-            onChange={(ev) => e.set({ taper: +ev.target.value })}
-          />
-        </label>
+        {e.tool !== "eraser" && (
+          <>
+            <label>
+              Nib angle
+              <input
+                type="number"
+                value={e.nibAngle}
+                onChange={(ev) => e.set({ nibAngle: +ev.target.value })}
+              />
+            </label>
+            <label>
+              Taper
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step=".05"
+                value={e.taper}
+                onChange={(ev) => e.set({ taper: +ev.target.value })}
+              />
+            </label>
+          </>
+        )}
       </section>
       <section>
         <h3>Transform {e.nodes.length ? `${e.nodes.length} nodes` : ""}</h3>

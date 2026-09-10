@@ -415,6 +415,31 @@ button.active {
   font-kerning: normal;
   font-feature-settings: "kern" 1;
 }
+.missing-glyph {
+  display: inline-block;
+  border: 1.5px dashed #c95632;
+  border-radius: 4px;
+  background: #faf3e8;
+  color: #a58362;
+  padding: 0 0.08em;
+  margin: 0 0.03em;
+  min-width: 0.55em;
+  text-align: center;
+  line-height: 1.3;
+  vertical-align: baseline;
+}
+.preview-sample {
+  padding: 20px 4px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1;
+  background: #fffdf7;
+  border: 1px solid #e4dfd3;
+  border-radius: 10px;
+  margin: 10px 0;
+}
 .proof-characters {
   display: flex;
   gap: 4px;
@@ -525,14 +550,29 @@ button.active {
 }
 .file-button {
   display: inline-flex !important;
-  border: 1px solid #d8d0c0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #ded9cd;
   border-radius: 7px;
-  padding: 8px;
+  padding: 7px 10px;
+  min-height: 32px;
   cursor: pointer;
   background: #fffdf7;
+  font: inherit;
+  position: relative;
 }
-.file-button input {
-  width: 150px;
+.file-button:hover {
+  background: #eee9de;
+}
+.file-button input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
 }
 .drop-zone {
   border: 2px dashed #d7c7af;
@@ -540,6 +580,27 @@ button.active {
   padding: 20px;
   flex-direction: column;
   background: #fffcf5;
+  cursor: pointer;
+  position: relative;
+  text-align: center;
+  gap: 6px;
+}
+.drop-zone:hover {
+  background: #fff8ea;
+  border-color: #c95632;
+}
+.drop-zone .drop-hint {
+  font-size: 11px;
+  color: #898674;
+}
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
 }
 .trace-preview {
   height: 310px;
