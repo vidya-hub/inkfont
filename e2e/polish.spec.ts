@@ -70,3 +70,15 @@ test("eraser cursor differs from brush and hides brush-only controls", async ({
   await page.getByRole("button", { name: "Brush", exact: true }).click();
   await expect(page.getByLabel("Brush width")).toBeVisible();
 });
+
+test("ghost letters can be toggled for spacing", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("status").first()).toContainText("Saved");
+  const ghosts = page.getByRole("button", {
+    name: "Ghost letters",
+    exact: true,
+  });
+  await expect(ghosts).toHaveAttribute("aria-pressed", "true");
+  await ghosts.click();
+  await expect(ghosts).toHaveAttribute("aria-pressed", "false");
+});

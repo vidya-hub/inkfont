@@ -8,6 +8,7 @@ import {
   type PathObject,
   type Contour,
   type Matrix,
+  type FontProject,
 } from "../core/model";
 import {
   drawPath,
@@ -29,6 +30,98 @@ interface Camera {
   x: number;
   y: number;
   scale: number;
+}
+function spacingKey(name: string) {
+  const cp = name.codePointAt(0) ?? 0;
+  if (name === " " || (cp >= 97 && cp <= 122)) return "n";
+  if (cp >= 48 && cp <= 57) return "0";
+  return "H";
+}
+function fillFallback(
+  ctx: CanvasRenderingContext2D,
+  kind: string,
+  advance: number,
+  cap: number,
+  xh: number,
+) {
+  const stem = Math.max(36, advance * 0.13),
+    inset = advance * 0.2;
+  ctx.beginPath();
+  if (kind === "n") {
+    ctx.rect(inset, 0, stem, xh);
+    ctx.moveTo(inset + stem, xh);
+    ctx.bezierCurveTo(
+      advance * 0.55,
+      xh,
+      advance - inset,
+      xh * 0.75,
+      advance - inset,
+      0,
+    );
+    ctx.lineTo(advance - inset - stem, 0);
+    ctx.lineTo(advance - inset - stem, xh * 0.5);
+    ctx.bezierCurveTo(
+      advance - inset - stem,
+      xh * 0.82,
+      inset + stem * 1.8,
+      xh * 0.82,
+      inset + stem,
+      xh * 0.5,
+    );
+    ctx.closePath();
+  } else if (kind === "0") {
+    ctx.ellipse(
+      advance / 2,
+      cap * 0.45,
+      advance * 0.28,
+      cap * 0.42,
+      0,
+      0,
+      Math.PI * 2,
+    );
+    ctx.ellipse(
+      advance / 2,
+      cap * 0.45,
+      advance * 0.13,
+      cap * 0.2,
+      0,
+      0,
+      Math.PI * 2,
+    );
+  } else {
+    ctx.rect(inset, 0, stem, cap);
+    ctx.rect(advance - inset - stem, 0, stem, cap);
+    ctx.rect(inset, cap * 0.42, advance - 2 * inset, stem * 0.65);
+  }
+  ctx.fill(kind === "0" ? "evenodd" : "nonzero");
+}
+function paintGhost(
+  ctx: CanvasRenderingContext2D,
+  project: FontProject,
+  ch: string,
+  originX: number,
+) {
+  const g = project.glyphs[project.mappings[ch]],
+    advance = g?.advance ?? 600;
+  ctx.save();
+  ctx.translate(originX, 0);
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = "#3d5c8a";
+  const objects = g ? resolveObjects(project, g.id) : [];
+  if (objects.some((o) => o.contours.length)) {
+    ctx.beginPath();
+    for (const o of objects) o.contours.forEach((c) => drawPath(ctx, c));
+    ctx.fill("nonzero");
+  } else
+    fillFallback(
+      ctx,
+      ch,
+      advance,
+      project.metrics.capHeight,
+      project.metrics.xHeight,
+    );
+  ctx.restore();
+  return advance;
 }
 type Gesture = {
   pointerType?: string;
@@ -252,6 +345,21 @@ export function EditorCanvas() {
       ctx.stroke();
     }
     world();
+    if (editor.ghosts) {
+      const key = spacingKey(glyph.name),
+        left = project.glyphs[project.mappings[key]]?.advance ?? 600,
+        box = bounds(resolveObjects(project, id).flatMap((o) => o.contours));
+      paintGhost(ctx, project, key, -left);
+      paintGhost(ctx, project, key, glyph.advance);
+      if (box) {
+        const y0 = project.metrics.descender,
+          h = project.metrics.ascender - y0;
+        ctx.fillStyle = "#6f9b5833";
+        if (box.minX > 0) ctx.fillRect(0, y0, box.minX, h);
+        if (glyph.advance > box.maxX)
+          ctx.fillRect(box.maxX, y0, glyph.advance - box.maxX, h);
+      }
+    }
     for (const r of glyph.references) {
       if (!r.visible) continue;
       ctx.save();
@@ -1116,18 +1224,39 @@ export function EditorCanvas() {
           });
         }}
       />
-      <div className="canvas-info">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-[#fffdf7ee] px-3 py-1.5 text-[10px] text-[#9a8c77]">
         <span>
-          {Math.round(camera.scale * 100)}% ·{" "}
+          {Math.round(camera.scale * 100)}%
+          {(() => {
+            const box = bounds(
+              resolveObjects(project, id).flatMap((o) => o.contours),
+            );
+            if (!glyph || !box) return "";
+            return ` · LSB ${Math.round(box.minX)} · RSB ${Math.round(glyph.advance - box.maxX)}`;
+          })()}
+          {" · "}
           {editor.tool === "node"
             ? "Drag nodes, handles, or curves · Double-click to insert a node"
             : editor.tool === "bezier"
               ? "Click corners · Drag handles · Click first node to close · Enter to finish"
               : "Scroll to zoom · H to pan · 0 to fit"}
         </span>
-        <button onClick={() => useEditor.setState({ fit: editor.fit + 1 })}>
-          Fit
-        </button>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <button
+            aria-pressed={editor.ghosts}
+            className={
+              editor.ghosts
+                ? "border-[#c95632] bg-[#f8e6dc] text-[#9a4a2c]"
+                : ""
+            }
+            onClick={() => useEditor.setState({ ghosts: !editor.ghosts })}
+          >
+            Ghost letters
+          </button>
+          <button onClick={() => useEditor.setState({ fit: editor.fit + 1 })}>
+            Fit
+          </button>
+        </div>
       </div>
       {message && (
         <div className="canvas-message" role="status">

@@ -8,3 +8,5 @@ public/fonts
 .DS_Store
 *.log
 .zcode
+.vercel
+.vercel

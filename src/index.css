@@ -1,1 +1,53 @@
-*{box-sizing:border-box}html,body,#root{margin:0;min-height:100%;width:100%}body{background:#f5f3ec;-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}button,input,textarea,select{font:inherit}button{color:inherit}canvas{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}details:not([open])>:not(summary){display:none}summary{cursor:pointer}button:disabled{cursor:default}input[type=checkbox]{width:auto!important}img,svg{vertical-align:middle}@media(pointer:coarse){input[type=range]{min-height:32px}}
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+}
+body {
+  background: #f5f3ec;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button {
+  color: inherit;
+}
+canvas {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+details:not([open]) > :not(summary) {
+  display: none;
+}
+summary {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+input[type="checkbox"] {
+  width: auto !important;
+}
+img,
+svg {
+  vertical-align: middle;
+}
+@media (pointer: coarse) {
+  input[type="range"] {
+    min-height: 32px;
+  }
+}

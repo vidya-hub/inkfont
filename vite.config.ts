@@ -1,10 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 export default defineConfig({
   publicDir: false,
   plugins: [
+    tailwindcss(),
     react(),
     {
       name: "inkfont-offline",

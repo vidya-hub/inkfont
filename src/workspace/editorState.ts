@@ -25,6 +25,7 @@ interface EditorState {
   pen: Contour | null;
   fit: number;
   busy: boolean;
+  ghosts: boolean;
   set: (v: Partial<EditorState>) => void;
 }
 export const useEditor = create<EditorState>((set) => ({
@@ -43,5 +44,6 @@ export const useEditor = create<EditorState>((set) => ({
   pen: null,
   fit: 0,
   busy: false,
+  ghosts: true,
   set,
 }));
